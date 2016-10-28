@@ -1,3 +1,5 @@
+######################## PYTHON 2.X VERSION ###########################
+
 import subprocess
 import os
 import shutil
@@ -13,8 +15,8 @@ if os.path.isfile(input_apk):
 #	print input_apk
 	pass
 else:
-	print "Don't Exist APK file or not correct APK name"
-	sys.exit()
+	print ("Don't Exist APK file or not correct APK name")
+	sys.exit() #System exit
 
 
 try:
@@ -25,7 +27,7 @@ try:
 		subprocess.call('mkdir analysis', shell=True) #Make folder to analysis
 except OSError as e:	
 	if e.errno == 2:
-		print "No such directory to remove"
+		print ("No such directory to remove")
 		pass
 	else:
 		raise
