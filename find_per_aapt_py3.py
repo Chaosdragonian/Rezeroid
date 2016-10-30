@@ -6,8 +6,5 @@ print ("\n[*] Start to analysis AndroidManifest.xml file")
 print ("[*] Find android permission!")
 print ("===============================================")
 
-subprocess.call('aapt dump badging *.apk | grep android.permission',shell=True)
-
-
-
+subprocess.call('aapt dump badging *.apk | grep uses-permission',shell=True)
 
