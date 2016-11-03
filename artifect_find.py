@@ -162,6 +162,35 @@ def nativefile(zfile):
 
 	nativeparser(solist)
 
+#Parsing Icon file
+def parse_icon(apkfile):
+
+	print ("############## Parsing IconFile ###############")
+
+	iconfile_name = 0
+	subprocess.call("mkdir pp_icon",shell=True)
+	cmd_line = "unzip -q %s -d pp_icon" %apkfile
+	subprocess.call(cmd_line,shell=True)
+
+	for (path,dir,files) in os.walk("./pp_icon/res/"):
+		for filename in files:
+			ext = os.path.splitext(filename)[-1]
+			if path.find('drawable') >= 0:
+				pass
+			elif path.find('layout') >= 0:
+				pass
+			else:
+				if iconfile_name == 0:
+					if ext == ".png":
+						print (path + "/" + filename)
+						subprocess.call("cp %s ./iconfile.png" %(path + "/" + filename),shell=True)
+						iconfile_name += 1
+					else:
+						pass
+				else:
+					pass
+
+	subprocess.call("rm -rf pp_icon",shell=True)
 
 
 #delete temp file directory
@@ -194,8 +223,9 @@ def main(apkfile):
 
 				nativefile(zfile)
 
-				#extractString(report, apkfile)
+				parse_icon(apkfile)
 
+				#extractString(report, apkfile)
 
 			else:
 				print ("[*] Sorry, We can\'t analyze this file")
