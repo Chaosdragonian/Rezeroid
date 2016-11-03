@@ -120,6 +120,49 @@ def parseDEX():
 		findSuspicious(string)
 
 
+def nativeparser(solist):
+	filterList = []
+	for sofile in solist:
+		with open(os.path.join("temp", sofile[1] + ".so"), 'rb') as f:
+			data = f.read()
+			email 	= re.findall(r'([\w.-]+)@([\w.-]+)', data)
+			url 	= re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', data)
+			ip 		= re.findall(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', data)
+
+			if email:
+				if str(email[0][0] + "@" + email[0][1]) not in filterList:
+					filterList.append(str(email[0][0] + "@" + email[0][1]))
+			if url:
+				if str(url[0]) not in filterList:
+					filterList.append(str(url[0]))
+			if ip:
+				if str(ip[0]) not in filterList:
+					filterList.append(str(ip[0]))
+	print (filterList)
+
+
+#native file information
+def nativefile(zfile):
+	print ("[*] Extracting Native File Data...")
+	solist = []
+	for fname in zfile.namelist():
+		if fname[-3:] == ".so":
+			tempArr = []
+			sofile = os.path.basename(fname)
+			source = zfile.open(fname)
+			target = file(os.path.join("temp", sofile), "wb")
+			with source, target:
+				shutil.copyfileobj(source, target)
+			sohash = filehash(os.path.join("temp", sofile), "sha1")
+			shutil.move(os.path.join("temp", sofile), os.path.join("temp", sohash + ".so"))
+			tempArr.append(fname)
+			tempArr.append(sohash)
+			solist.append(tempArr)
+
+	nativeparser(solist)
+
+
+
 #delete temp file directory
 def delTemp():
 	subprocess.call("rm -rf temp",shell=True)
@@ -147,6 +190,8 @@ def main(apkfile):
 				getManifest(apkfile)
 
 				parseDEX()
+
+				nativefile(zfile)
 
 				#extractString(report, apkfile)
 
