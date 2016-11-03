@@ -105,7 +105,7 @@ def findSuspicious(stringlist):
 			dexstrlist.append(str(url[0]))
 		if ip:
 			dexstrlist.append(str(ip[0]))
-	print ("######################## Artifects list ##########################")
+	print ("######################## <Classes.dex> File Artifects list ##########################")
 	print (dexstrlist)
 
 
@@ -138,6 +138,7 @@ def nativeparser(solist):
 			if ip:
 				if str(ip[0]) not in filterList:
 					filterList.append(str(ip[0]))
+        print ("######################## <.so> File Artifects List ##########################")
 	print (filterList)
 
 
