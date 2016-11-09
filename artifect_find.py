@@ -7,6 +7,7 @@ import re
 import traceback
 import json
 import hashlib
+import pymysql
 
 from lib.dexparser import Dexparser
 
@@ -84,32 +85,60 @@ def extractDEX(zfile):
 
 
 def getManifest(apkfile):
+	
+	mysql_list = ""
+
 	print ("[*] Extracting Permission in AndroidManifest.xml File...")
 	print ("############## Permission List in AndroidManifest.xml ##############")
-	infocmd = "aapt dump badging %s | grep uses-permission" %apkfile
+	infocmd = "aapt dump badging %s | grep uses-permission > per_m.txt" %apkfile
 	subprocess.call(infocmd,shell=True)
-
+	f = open("./per_m.txt",'r')
+	while True:
+		line = f.readline()
+		if not line: break
+		mysql_list += line
+	f.close()
+	subprocess.call("rm -r per_m.txt",shell=True)
+#	cur.execute("INSERT INTO APL_XML(PERMISSION) VALUES(%s);" %mysql_list)
 
 #find suspicious string in dex and replace if highlight
 def findSuspicious(stringlist):
 	dexstrlist = []
+	emaillist = ""
+	urllist = ""
+	iplist = ""
+	phonelist = ""
 #	print (stringlist)
 	for i in range(len(stringlist)):
 		email 	= re.findall(b'([\w.-]+)@([\w.-]+)', stringlist[i])
 		url 	= re.findall(b'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', stringlist[i])
-		ip 		= re.findall(b'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', stringlist[i])
+		ip 	= re.findall(b'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', stringlist[i])
+		phone = re.findall(b'\d{2,3}-\d{3,4}-\d{3,4}',stringlist[i])
+#		user_id	= re.findall(b'%(id)%',stringlist[i])
 
 		if email:
 			dexstrlist.append(str(email[0][0] + "@" + email[0][1]))
+			emaillist += str(email[0][0] + "@" + email[0][1]).replace("b'", '')
 		if url:
 			dexstrlist.append(str(url[0]))
+			urllist += str(url[0]).replace("b'", '')
 		if ip:
 			dexstrlist.append(str(ip[0]))
+			iplist += str(ip[0]).replace("b'", '')
+		if phone:
+			dexstrlist.append(str(phone[0]))
+			phonelist += str(phone[0]).replace("b'", '')	
+
+
 	print ("######################## _Classes.dex_ File Artifects list ##########################")
 	print (dexstrlist)
 
+#cur.execute("INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE) VALUES(urllist,emaillist,iplist,phonelist)")
+
+
 
 def parseDEX():
+#def parseDEX(cur):
 	global dexList
 
 	for dexfile in dexList:
@@ -118,7 +147,8 @@ def parseDEX():
 #		typeid = parse.typeid_list()
 #		method = parse.method_list()
 		findSuspicious(string)
-
+#		findSuspicious(cur,string)
+#		print (string)
 
 def nativeparser(solist):
 	filterList = []
@@ -127,7 +157,7 @@ def nativeparser(solist):
 			data = f.read()
 			email 	= re.findall(r'([\w.-]+)@([\w.-]+)', data)
 			url 	= re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', data)
-			ip 		= re.findall(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', data)
+			ip 	= re.findall(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', data)
 
 			if email:
 				if str(email[0][0] + "@" + email[0][1]) not in filterList:
@@ -165,10 +195,14 @@ def nativefile(zfile):
 #Parsing Icon file
 def parse_icon(apkfile):
 
-	print ("############## Parsing IconFile ###############")
+	print ("############### Parsing IconFile ###############")
 
-	iconfile_name = 0
-	subprocess.call("mkdir pp_icon",shell=True)
+	iconfile_name = ""
+	if not os.path.isdir('./pp_icon'):
+		subprocess.call("mkdir pp_icon",shell=True)
+	else:
+		subprocess.call("rm -r pp_icon",shell=True)
+		subprocess.call("mkdir pp_icon",shell=True)
 	cmd_line = "unzip -q %s -d pp_icon" %apkfile
 	subprocess.call(cmd_line,shell=True)
 
@@ -180,15 +214,15 @@ def parse_icon(apkfile):
 			elif path.find('layout') >= 0:
 				pass
 			else:
-				if iconfile_name == 0:
-					if ext == ".png":
-						print (path + "/" + filename)
-						subprocess.call("cp %s ./iconfile.png" %(path + "/" + filename),shell=True)
-						iconfile_name += 1
-					else:
-						pass
-				else:
+				if filename == iconfile_name:
 					pass
+				else:
+					if (ext == ".png" or ext == ".jpg"):
+						if (filename.find("ic") >= 0):
+							print (path + "/" + filename)
+							subprocess.call("cp %s ./iconfile.png" %(path + "/" + filename),shell=True)
+							iconfile_name = filename
+
 
 	subprocess.call("rm -rf pp_icon",shell=True)
 
@@ -214,17 +248,23 @@ def main(apkfile):
 			isAndroid = is_android(zfile) #check vaild android apk file
 			if isAndroid:
 				print ("[*] Analysis start!")
+
+	#			con = pymysql.connect(host='165.132.221.252',port=3306,user='root',passwd='keroro2424',db='rezeroid')
+	#			cur = con.cursor()
 				
 				extractDEX(zfile) #extract dex file
 
 				getManifest(apkfile)
+#				getManifest(cur,apkfile)
 
 				parseDEX()
+#				parseDEX(cur)
 
 				nativefile(zfile)
 
 				parse_icon(apkfile)
 
+	#			con.close()
 				#extractString(report, apkfile)
 
 			else:
