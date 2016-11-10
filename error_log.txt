@@ -106,3 +106,145 @@ TypeError: translate() takes exactly one argument (2 given)
     urllist += (str(url[0])).translate(None,"'")
 TypeError: translate() takes exactly one argument (2 given)
 
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 123, in findSuspicious
+    if url.find("schemas.android.com") >= 0:
+AttributeError: 'list' object has no attribute 'find'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 123, in findSuspicious
+    if url[0].find("schemas.android.com") >= 0:
+TypeError: 'str' does not support the buffer interface
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 268, in main
+    parseDEX()
+  File "artifect_find.py", line 157, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 124, in findSuspicious
+    if url[0].find("schemas.android.com") >= 0:
+TypeError: 'str' does not support the buffer interface
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 123, in findSuspicious
+    if str((url[0]).replace("b'", '')).find("schemas.android.com") >= 0:
+TypeError: 'str' does not support the buffer interface
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 124, in findSuspicious
+    if (str(url[0]).replace("b'", '')) >= 0:
+TypeError: unorderable types: str() >= int()
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 124, in findSuspicious
+    if (url[0].replace("b'", '')) >= 0:
+TypeError: 'str' does not support the buffer interface
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 124, in findSuspicious
+    if (str(url[0]).replace("b'", '')) >= 0:
+TypeError: unorderable types: str() >= int()
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 267, in main
+    parseDEX()
+  File "artifect_find.py", line 156, in parseDEX
+    findSuspicious(string)
+  File "artifect_find.py", line 124, in findSuspicious
+    if int(str(url[0]).replace("b'", '')) >= 0:
+ValueError: invalid literal for int() with base 10: "http://165.132.221.240:83/api/android/getfile'"
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).replace('\'\n', '')
+AttributeError: 'NoneType' object has no attribute 'replace'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).replace('\'', '')
+AttributeError: 'NoneType' object has no attribute 'replace'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).replace("'\n", '')
+AttributeError: 'NoneType' object has no attribute 'replace'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).replace("\n", '')
+AttributeError: 'NoneType' object has no attribute 'replace'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (str(line.split('.')[-1])).replace("\'", "")
+AttributeError: 'NoneType' object has no attribute 'replace'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).split('\'')[0]
+AttributeError: 'NoneType' object has no attribute 'split'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('.')[-1]).split("'")[0]
+AttributeError: 'NoneType' object has no attribute 'split'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (str(line.split('.')[-1])).split("'")[0]
+AttributeError: 'NoneType' object has no attribute 'split'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (line.split('\'')[-2]).split('.')[-1]
+AttributeError: 'NoneType' object has no attribute 'split'
+
+[*] Traceback (most recent call last):
+  File "artifect_find.py", line 266, in main
+    getManifest(apkfile)
+  File "artifect_find.py", line 99, in getManifest
+    print (str(line.split('\'')[-2])).split('.')[-1]
+AttributeError: 'NoneType' object has no attribute 'split'
+

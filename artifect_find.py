@@ -96,8 +96,11 @@ def getManifest(apkfile):
 	while True:
 		line = f.readline()
 		if not line: break
-		mysql_list += line
+		line = line.split('\'')[-2]
+		line = line.split('.')[-1]
+		mysql_list += line + ','
 	f.close()
+	print (mysql_list)
 	subprocess.call("rm -r per_m.txt",shell=True)
 #	cur.execute("INSERT INTO APL_XML(PERMISSION) VALUES(%s);" %mysql_list)
 
@@ -121,7 +124,10 @@ def findSuspicious(stringlist):
 			emaillist += str(email[0][0] + "@" + email[0][1]).replace("b'", '')
 		if url:
 			dexstrlist.append(str(url[0]))
-			urllist += str(url[0]).replace("b'", '')
+			if ((str(url[0]).replace("b'", '')).find("schemas.android.com")) >= 0:
+				pass
+			else:
+				urllist += str(url[0]).replace("b'", '')
 		if ip:
 			dexstrlist.append(str(ip[0]))
 			iplist += str(ip[0]).replace("b'", '')
@@ -131,7 +137,11 @@ def findSuspicious(stringlist):
 
 
 	print ("######################## _Classes.dex_ File Artifects list ##########################")
-	print (dexstrlist)
+#	print (dexstrlist)
+	print ("print email list : %s\n" %emaillist)
+	print ("print url list : %s\n" %urllist)
+	print ("print ip list : %s\n" %iplist)
+	print ("print phone list : %s\n" %phonelist)
 
 #cur.execute("INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE) VALUES(urllist,emaillist,iplist,phonelist)")
 
