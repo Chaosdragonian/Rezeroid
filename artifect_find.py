@@ -84,8 +84,9 @@ def extractDEX(zfile):
 			dexList.append(dexhash + ".dex")
 
 
-def getManifest(apkfile):
+def getManifest(cur,apkfile):
 	
+	cmd = ""
 	mysql_list = ""
 
 	print ("[*] Extracting Permission in AndroidManifest.xml File...")
@@ -102,10 +103,11 @@ def getManifest(apkfile):
 	f.close()
 	print (mysql_list)
 	subprocess.call("rm -r per_m.txt",shell=True)
-#	cur.execute("INSERT INTO APL_XML(PERMISSION) VALUES(%s);" %mysql_list)
+	cmd = ("INSERT INTO APK_XML(PERMISSION) VALUES(%s)""")
+	cur.execute(cmd,mysql_list)
 
 #find suspicious string in dex and replace if highlight
-def findSuspicious(stringlist):
+def findSuspicious(cur,stringlist):
 	dexstrlist = []
 	emaillist = ""
 	urllist = ""
@@ -138,16 +140,17 @@ def findSuspicious(stringlist):
 
 	print ("######################## _Classes.dex_ File Artifects list ##########################")
 #	print (dexstrlist)
-	print ("print email list : %s\n" %emaillist)
-	print ("print url list : %s\n" %urllist)
-	print ("print ip list : %s\n" %iplist)
-	print ("print phone list : %s\n" %phonelist)
+	print ("print email list : %s" %emaillist)
+	print ("print url list : %s" %urllist)
+	print ("print ip list : %s" %iplist)
+	print ("print phone list : %s" %phonelist)
 
-#cur.execute("INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE) VALUES(urllist,emaillist,iplist,phonelist)")
+	cmd = """INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE) VALUES (%s, %s, %s, %s)"""
+	cur.execute(cmd,(urllist,emaillist,iplist,phonelist))
 
 
 
-def parseDEX():
+def parseDEX(cur):
 #def parseDEX(cur):
 	global dexList
 
@@ -156,8 +159,8 @@ def parseDEX():
 		string = parse.string_list()
 #		typeid = parse.typeid_list()
 #		method = parse.method_list()
-		findSuspicious(string)
-#		findSuspicious(cur,string)
+#		findSuspicious(string)
+		findSuspicious(cur,string)
 #		print (string)
 
 def nativeparser(solist):
@@ -259,23 +262,26 @@ def main(apkfile):
 			if isAndroid:
 				print ("[*] Analysis start!")
 
-	#			con = pymysql.connect(host='165.132.221.252',port=3306,user='root',passwd='keroro2424',db='rezeroid')
-	#			cur = con.cursor()
+				con = pymysql.connect(host='165.132.221.252',user='root',passwd='keroro2424',db='rezeroid')
+				cur = con.cursor()
 				
 				extractDEX(zfile) #extract dex file
 
-				getManifest(apkfile)
-#				getManifest(cur,apkfile)
+#				getManifest(apkfile)
+				getManifest(cur,apkfile)
 
-				parseDEX()
-#				parseDEX(cur)
+#				parseDEX()
+				parseDEX(cur)
 
 				nativefile(zfile)
 
 				parse_icon(apkfile)
 
-	#			con.close()
+				con.commit()
+
+				con.close()
 				#extractString(report, apkfile)
+
 
 			else:
 				print ("[*] Sorry, We can\'t analyze this file")
