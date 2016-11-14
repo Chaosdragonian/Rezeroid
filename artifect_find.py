@@ -103,9 +103,12 @@ def getManifest(cur,apkfile):
 	f.close()
 	print (mysql_list)
 	subprocess.call("rm -r per_m.txt",shell=True)
-	cmd = ("INSERT INTO APK_XML(PERMISSION) VALUES(%s)""")
-	cur.execute(cmd,mysql_list)
-
+	cmd = "INSERT INTO APK_XML VALUES (null, %s, %s, %s)"
+	case_id = "qqqq"
+	member_id = "qqq"
+	cur.execute(cmd, (mysql_list, case_id, member_id))
+#	cur.execute(cmd)
+	
 #find suspicious string in dex and replace if highlight
 def findSuspicious(cur,stringlist):
 	dexstrlist = []
@@ -145,8 +148,11 @@ def findSuspicious(cur,stringlist):
 	print ("print ip list : %s" %iplist)
 	print ("print phone list : %s" %phonelist)
 
-	cmd = """INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE) VALUES (%s, %s, %s, %s)"""
-	cur.execute(cmd,(urllist,emaillist,iplist,phonelist))
+	case_id = ""
+	member_id = ""
+
+	cmd = """INSERT INTO ARTIFACT_INFO(A_DOMAIN,A_MAIL,A_IP,A_PHONE,CASE_ID,M_ID) VALUES (%s, %s, %s, %s, %s, %s)"""
+	cur.execute(cmd,(urllist,emaillist,iplist,phonelist,case_id,member_id))
 
 
 
