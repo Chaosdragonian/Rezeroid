@@ -11,34 +11,37 @@ import pymysql
 
 from lib.dexparser import Dexparser
 
-dexList = [] #dexfile list
+dexList = [] #*.dex file list
 
-#program usage
+#Program usage
+####### How to use this .py file #######
 def usage():
 	print ("androtools : no file specified")
 	print ("./androtools <APK_FILE>")
 
 
-#program information
+#Program Information
+####### Print apk file's full path and name #######
 def about(apkfile):
 	print ("Target APK Path : %s" %apkfile)
 
 
-#check target file that this is vaild apk file
+####### Check target file that this is vaild apk file #######
 def is_android(zfile):
 	for fname in zfile.namelist():
-		if "AndroidManifest.xml" in fname:
+		if "AndroidManifest.xml" in fname: #Check AndroidManifest.xml file exist in target
 			return True
-		elif "resources.arsc" in fname:
+		elif "resources.arsc" in fname: #Check resources.arsc file exist in target
 			return True
 		else:
 			pass
 	return False
 
 
-#filehash extractor
+#Filehash extractor
+####### To use "hashlib", get file digest #######
 def filehash(apkfile, mode):
-	if mode == "md5":
+	if mode == "md5":			#md5 hash
 		with open(apkfile, 'rb') as f:
 			m = hashlib.md5()
 			while True:
@@ -47,7 +50,7 @@ def filehash(apkfile, mode):
 					break
 				m.update(data)
 		return m.hexdigest()
-	elif mode == "sha1":
+	elif mode == "sha1":			#sha1 hash
 		with open(apkfile, 'rb') as f:
 			m = hashlib.sha1()
 			while True:
@@ -56,7 +59,7 @@ def filehash(apkfile, mode):
 					break
 				m.update(data)
 		return m.hexdigest()
-	elif mode == "sha256":
+	elif mode == "sha256":			#sha256 hash
 		with open(apkfile, 'rb') as f:
 			m = hashlib.sha256()
 			while True:
@@ -70,11 +73,11 @@ def filehash(apkfile, mode):
 		return ""
 
 
-#extract dex file to temp file
+####### Extract *.dex file in target apk file to temp(***).dex file #######
 def extractDEX(zfile):
 	global dexList
 	for fname in zfile.namelist():
-		if fname[-4:] == ".dex": #if file extension is dex
+		if fname[-4:] == ".dex": #If file extension is dex
 			zfile.extract(fname, "temp")
 			dexpath = os.path.join("temp", fname)
 			dexhash = filehash(dexpath, "md5")
@@ -82,19 +85,22 @@ def extractDEX(zfile):
 			print ("dexhash : %s" %dexhash)
 			shutil.move(dexpath, os.path.join("temp", dexhash + ".dex"))
 			dexList.append(dexhash + ".dex")
+		else:
+			pass
 
 
-def getManifest(cur,apkfile):
-	
-	cmd = ""
-	mysql_list = ""
+#def getManifest(apkfile):
+####### Get permissions in AndroidManifest.xml file to use aapt #######
+def getManifest(cur,apkfile):	
+	cmd = ""		#Save command line strings
+	mysql_list = ""		#Save data for mysql query
 
 	print ("[*] Extracting Permission in AndroidManifest.xml File...")
 	print ("############## Permission List in AndroidManifest.xml ##############")
-	infocmd = "aapt dump badging %s | grep uses-permission > per_m.txt" %apkfile
-	subprocess.call(infocmd,shell=True)
+	infocmd = "aapt dump badging %s | grep uses-permission > per_m.txt" %apkfile #Filtering "uses-permission" strings
+	subprocess.call(infocmd, shell=True) #Execute command-line
 	f = open("./per_m.txt",'r')
-	while True:
+	while True: #Process mysql input query's value
 		line = f.readline()
 		if not line: break
 		line = line.split('\'')[-2]
@@ -103,43 +109,45 @@ def getManifest(cur,apkfile):
 	f.close()
 	print (mysql_list)
 	subprocess.call("rm -r per_m.txt",shell=True)
-	cmd = "INSERT INTO APK_XML VALUES (null, %s, %s, %s)"
-	case_id = "qqqq"
-	member_id = "qqq"
-	cur.execute(cmd, (mysql_list, case_id, member_id))
-#	cur.execute(cmd)
-	
-#find suspicious string in dex and replace if highlight
-def findSuspicious(cur,stringlist):
+	cmd = "INSERT INTO APK_XML VALUES (null, %s, %s, %s)" #Make mysql query
+	case_id = ""
+	member_id = ""
+	cur.execute(cmd, (mysql_list, case_id, member_id)) #Execute cmd mysql query
+
+
+#def findSuspicious(cur, stringlist):	
+####### Find suspicious string in *.dex file and replace if highlight #######
+def findSuspicious(stringlist):
 	dexstrlist = []
 	emaillist = ""
 	urllist = ""
 	iplist = ""
 	phonelist = ""
-#	print (stringlist)
+	right_emaillist = ("gmail","daum","naver","hotmail","hanmail") #Email whitelist
 	for i in range(len(stringlist)):
-		email 	= re.findall(b'([\w.-]+)@([\w.-]+)', stringlist[i])
-		url 	= re.findall(b'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', stringlist[i])
-		ip 	= re.findall(b'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', stringlist[i])
-		phone = re.findall(b'\d{2,3}-\d{3,4}-\d{3,4}',stringlist[i])
-#		user_id	= re.findall(b'%(id)%',stringlist[i])
+		email 	= re.findall(b'([a-zA-Z0-9._-]+)@([a-zA-Z0-9]+)\.([a-zA-Z]+)', stringlist[i]) #Email regex
+		url 	= re.findall(b'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', stringlist[i]) #URL Regex
+		ip 	= re.findall(b'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', stringlist[i]) #IP Regex
+		phone = re.findall(b'\d{2,3}-\d{3,4}-\d{3,4}',stringlist[i]) #Phone Regex
 
-		if email:
-			dexstrlist.append(str(email[0][0] + "@" + email[0][1]))
-			emaillist += str(email[0][0] + "@" + email[0][1]).replace("b'", '')
-		if url:
-			dexstrlist.append(str(url[0]))
+		if email: #If email value exist
+			if (str(email[0][1]).replace("b'", '').replace("'", '')) in right_emaillist:
+				dexstrlist.append(str(email[0][0]) + "@" + str(email[0][1]))
+				emaillist += ((str(email[0][0]) + "@" + str(email[0][1]) + "." + str(email[0][2])).replace("b'", '')).replace("'", '') + "'" #Append email value to emaillist
+			else:
+				pass
+		if url: #If URL value exist
+			dexstrlist.append(str(url[0])) #Append URL value to urllist
 			if ((str(url[0]).replace("b'", '')).find("schemas.android.com")) >= 0:
 				pass
 			else:
 				urllist += str(url[0]).replace("b'", '')
-		if ip:
-			dexstrlist.append(str(ip[0]))
+		if ip: #If IP value exist
+			dexstrlist.append(str(ip[0])) #Append IP value to iplist
 			iplist += str(ip[0]).replace("b'", '')
-		if phone:
-			dexstrlist.append(str(phone[0]))
+		if phone: #If phone value exist
+			dexstrlist.append(str(phone[0])) #Append phone value to phonelist
 			phonelist += str(phone[0]).replace("b'", '')	
-
 
 	print ("######################## _Classes.dex_ File Artifects list ##########################")
 #	print (dexstrlist)
@@ -156,8 +164,9 @@ def findSuspicious(cur,stringlist):
 
 
 
+#def parseDEX():
+####### Find string value in *.dex file #######
 def parseDEX(cur):
-#def parseDEX(cur):
 	global dexList
 
 	for dexfile in dexList:
@@ -166,9 +175,10 @@ def parseDEX(cur):
 #		typeid = parse.typeid_list()
 #		method = parse.method_list()
 #		findSuspicious(string)
-		findSuspicious(cur,string)
-#		print (string)
+		findSuspicious(cur,string) #Find suspicious string in *.dex file
 
+
+####### Find string value in native file(*.so) #######
 def nativeparser(solist):
 	filterList = []
 	for sofile in solist:
@@ -177,6 +187,7 @@ def nativeparser(solist):
 			email 	= re.findall(r'([\w.-]+)@([\w.-]+)', data)
 			url 	= re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', data)
 			ip 	= re.findall(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', data)
+			#use regex for extract email, url, ip string value in apk file
 
 			if email:
 				if str(email[0][0] + "@" + email[0][1]) not in filterList:
@@ -191,7 +202,7 @@ def nativeparser(solist):
 	print (filterList)
 
 
-#native file information
+####### Native file information #######
 def nativefile(zfile):
 	print ("[*] Extracting Native File Data...")
 	solist = []
@@ -208,56 +219,54 @@ def nativefile(zfile):
 			tempArr.append(fname)
 			tempArr.append(sohash)
 			solist.append(tempArr)
-
 	nativeparser(solist)
 
-#Parsing Icon file
+
+####### Parsing Icon file in apk file #######
 def parse_icon(apkfile):
-
 	print ("############### Parsing IconFile ###############")
-
 	iconfile_name = ""
 	if not os.path.isdir('./pp_icon'):
 		subprocess.call("mkdir pp_icon",shell=True)
 	else:
 		subprocess.call("rm -r pp_icon",shell=True)
 		subprocess.call("mkdir pp_icon",shell=True)
+
 	cmd_line = "unzip -q %s -d pp_icon" %apkfile
-	subprocess.call(cmd_line,shell=True)
+	subprocess.call(cmd_line,shell=True) #unzip apk file
 
 	for (path,dir,files) in os.walk("./pp_icon/res/"):
 		for filename in files:
 			ext = os.path.splitext(filename)[-1]
-			if path.find('drawable') >= 0:
+			if path.find('drawable') >= 0: #if directory name is "drawble"
 				pass
-			elif path.find('layout') >= 0:
+			elif path.find('layout') >= 0: #if directory name is "layout"
 				pass
 			else:
 				if filename == iconfile_name:
 					pass
 				else:
-					if (ext == ".png" or ext == ".jpg"):
+					if (ext == ".png" or ext == ".jpg"): #if file extension is ".png" or ".jpg"
 						if (filename.find("ic") >= 0):
 							print (path + "/" + filename)
 							subprocess.call("cp %s ./iconfile.png" %(path + "/" + filename),shell=True)
 							iconfile_name = filename
-
-
 	subprocess.call("rm -rf pp_icon",shell=True)
 
 
-#delete temp file directory
+####### Delete temp file directory #######
 def delTemp():
 	subprocess.call("rm -rf temp",shell=True)
 
 
-#logging error to error_log.txt
+####### Logging error to error_log.txt #######
 def logError(error_msg):
 	f = open('error_log.txt', 'a+')
 	f.write('[*] ' + error_msg + '\n')
 	f.close()
 
 
+####### Main function #######
 def main(apkfile):
 	try:
 		about(apkfile) #program information
@@ -278,17 +287,11 @@ def main(apkfile):
 
 #				parseDEX()
 				parseDEX(cur)
-
 				nativefile(zfile)
-
 				parse_icon(apkfile)
 
 				con.commit()
-
 				con.close()
-				#extractString(report, apkfile)
-
-
 			else:
 				print ("[*] Sorry, We can\'t analyze this file")
 		else:
@@ -297,7 +300,7 @@ def main(apkfile):
 		print ("[*] Analysis complete!")
 	except Exception as e:
 		logError(str(traceback.format_exc()))
-		print ("[*] Androtools Exception - Error logged!")
+		print ("[*] Exception - Error logged!")
 
 if __name__ == '__main__':
 	try:
